@@ -22,11 +22,20 @@ class Net:
         self.training = True
 
     def add(self, layer):
-        """Add a layer to the network."""
+        """
+        Add a layer to the network.
+ 
+        Args:
+            layer: Any object that implements forward(), backward(), update(),
+                   and (optionally) train()/eval() for mode control.
+        """
         self.layers.append(layer)
 
     def train(self):
-        """Switch the whole network to training mode."""
+        """
+        Switch the whole network to training mode and propagate
+        the setting to layers that implement train().
+        """
         self.training = True
         for layer in self.layers:
             if hasattr(layer, "train"):
@@ -34,7 +43,10 @@ class Net:
         return self
 
     def eval(self):
-        """Switch the whole network to evaluation mode."""
+        """
+        Switch the whole network to evaluation mode and propagate
+        the setting to layers that implement eval().
+        """
         self.training = False
         for layer in self.layers:
             if hasattr(layer, "eval"):
@@ -42,19 +54,40 @@ class Net:
         return self
 
     def forward(self, X):
-        """Forward pass through all layers."""
+        """
+        Forward pass through all layers.
+ 
+        Args:
+            X (torch.Tensor): Input to the network.
+ 
+        Returns:
+            torch.Tensor: Output after the last layer.
+        """
         for layer in self.layers:
             X = layer.forward(X)
         return X
 
     def backward(self, dZ):
-        """Backward pass through all layers in reverse order."""
+        """
+        Backward pass through all layers in reverse order.
+ 
+        Args:
+            dZ (torch.Tensor): Gradient of the loss w.r.t. network output.
+ 
+        Returns:
+            torch.Tensor: Gradient of the loss w.r.t. the network input.
+        """
         for layer in reversed(self.layers):
             dZ = layer.backward(dZ)
         return dZ
 
     def update(self, lr):
-        """Update parameters of all trainable layers."""
+        """
+        Update parameters of all trainable layers with the given learning rate.
+ 
+        Args:
+            lr (float): Learning rate.
+        """
         for layer in self.layers:
             if hasattr(layer, "update"):
                 layer.update(lr)
@@ -62,28 +95,34 @@ class Net:
 
 class Linear:
     """
-    Fully connected (dense) layer.
-    Performs: Z = XW + b
+    A simple fully connected (dense) layer.
+    Performs a linear transformation:  Z = XW + b
     """
 
     def __init__(self, nin, nout, device="cpu"):
         """Initialize weights and biases."""
+        # Initialize weights from a normal distribution
+        # self.W = torch.randn(nin, nout, device=device, requires_grad=False)
+
         # Xavier/Glorot initialization for better training
         self.W = torch.randn(nin, nout, device=device) * (2.0 / nin) ** 0.5
         self.b = torch.zeros(nout, device=device)
         self.training = True
 
     def train(self):
+        """Switch to training mode."""
         self.training = True
         return self
 
     def eval(self):
+        """Switch to evaluation mode."""
         self.training = False
         return self
 
     def forward(self, X):
         """
-        Forward pass: Z = XW + b
+        Forward pass:  Forward pass: compute the output of the layer.
+        Z = XW + b
         X: (batch_size, nin)
         W: (nin, nout)
         Z: (batch_size, nout)
@@ -123,14 +162,26 @@ class ReLU:
 
     def forward(self, Z):
         """
-        Forward pass: apply ReLU element-wise.
+        Perform the forward pass of the ReLU activation function.
+
+        Args:
+            Z (torch.Tensor): Input tensor.
+
+        Returns:
+            A torch.Tensor: Output tensor with ReLU applied element-wise.
         """
         self.A = torch.maximum(Z, torch.zeros_like(Z))
         return self.A
 
     def backward(self, dA):
         """
-        Backward pass: gradient flows through where input > 0.
+        Perform the backward pass of the ReLU activation function.
+
+        Args:
+            dA (torch.Tensor): Gradient of the loss with respect to the output.
+
+        Returns:
+            dZ torch.Tensor: Gradient of the loss with respect to the input.
         """
         # Gradient is 1 where A > 0, else 0
         dZ = dA * (self.A > 0).float()
@@ -143,15 +194,23 @@ class ReLU:
 
 class CrossEntropyFromLogits:
     """
-    Cross-entropy loss from raw logits (includes softmax).
-    Implemented from scratch using only basic operations.
+    Implements the combination of:
+    - Softmax activation (from raw logits)
+    - Cross-entropy loss
+
+    This is a common choice for multi-class classification.
     """
 
     def forward(self, Z, Y):
         """
-        Compute cross-entropy loss.
-        Z: (batch_size, n_classes) - raw logits
-        Y: (batch_size,) - true class indices
+        Forward pass: compute the cross-entropy loss from raw logits.
+
+        Args:
+            Z (torch.Tensor): Logits (unnormalized scores) of shape (batch_size, n_classes).
+            Y (torch.Tensor): True class indices of shape (batch_size,).
+
+        Returns:
+            loss torch.Tensor: Scalar value of the cross-entropy loss.
         """
         self.Y = Y
         
@@ -175,12 +234,19 @@ class CrossEntropyFromLogits:
 
     def backward(self, n_classes):
         """
-        Compute gradient: dZ = (A - Y_one_hot) / batch_size
+        Backward pass: compute the gradient of the loss with respect to logits Z.
+
+        Args:
+            n_classes (int): Number of classes in the classification problem.
+
+        Returns:
+            torch.Tensor: Gradient dZ of shape (batch_size, n_classes).
         """
         batch_size = len(self.Y)
         
         # One-hot encode true labels manually
-        Y_one_hot = torch.zeros_like(self.A)
+        # Y_one_hot = torch.zeros_like(self.A) # Alternativa sin n_classes
+        Y_one_hot = torch.zeros(batch_size, n_classes)
         Y_one_hot[range(batch_size), self.Y] = 1
         
         # Gradient: softmax output minus one-hot labels
@@ -193,6 +259,9 @@ class BatchNorm1D:
     """
     Batch Normalization for 1D inputs (batch, features).
     Normalizes activations to have mean=0, variance=1.
+
+    TRAIN: compute batch stats, normalize, update running stats, support backward().
+    EVAL:  use running stats, no updates, typically no backward().
     """
 
     def __init__(self, n_features, eps=1e-5, momentum=0.1, device="cpu"):
@@ -221,6 +290,10 @@ class BatchNorm1D:
     def forward(self, X):
         """
         Forward pass with batch normalization.
+        Args:
+            X: (batch, features)
+        Returns:
+            Y: (batch, features)
         """
         if self.training:
             # Compute batch statistics
@@ -250,6 +323,10 @@ class BatchNorm1D:
     def backward(self, dY):
         """
         Backward pass through batch normalization.
+        Args:
+            dY: upstream gradient (batch, features)
+        Returns:
+            dX: gradient wrt input X (batch, features)
         """
         if not self.training:
             raise RuntimeError("Backward called in eval() mode.")
@@ -282,13 +359,18 @@ class BatchNorm1D:
 
 class Dropout:
     """
-    Inverted Dropout: randomly zeros activations during training.
+    Inverted Dropout (for fully-connected tensors [batch, features]).
+
+    - TRAIN: randomly zeroes activations with prob p, and rescales by 1/(1-p)
+             so the expected activation stays constant.
+    - EVAL:  identity (no dropout, no scaling).
     """
 
     def __init__(self, p=0.5, device="cpu"):
         """
         Args:
             p: Drop probability (fraction of units to zero out)
+            device (str): 'cpu' or 'cuda'
         """
         assert 0.0 <= p < 1.0, "p must be in [0, 1)."
         self.p = p
@@ -307,6 +389,10 @@ class Dropout:
     def forward(self, X):
         """
         Forward pass with inverted dropout.
+        Args:
+            X: Tensor of shape (batch, features)
+        Returns:
+            Tensor of same shape
         """
         if self.training and self.p > 0.0:
             # Compute keep probability
@@ -328,6 +414,10 @@ class Dropout:
     def backward(self, dY):
         """
         Backward pass: gradient flows through the same mask.
+        Args:
+            dY: Gradient wrt output, shape (batch, features)
+        Returns:
+            dX: Gradient wrt input, shape (batch, features)
         """
         return dY * self.mask
 
