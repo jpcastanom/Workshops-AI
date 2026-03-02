@@ -366,7 +366,7 @@ class Dropout:
     - EVAL:  identity (no dropout, no scaling).
     """
 
-    def __init__(self, p=0.5, device="cpu"):
+    def __init__(self, p, device="cpu"):
         """
         Args:
             p: Drop probability (fraction of units to zero out)
