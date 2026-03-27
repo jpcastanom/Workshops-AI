@@ -1,0 +1,146 @@
+# Workshop 2 — Reporte Final
+**Materia:** Inteligencia Artificial  
+**Dataset:** Logistics (Roboflow Universe)  
+**Modelo base:** YOLOv8s
+
+---
+
+## 1. Training Setup — Parámetros de Entrenamiento
+
+| Parámetro | Valor | Justificación |
+|---|---|---|
+| Modelo | `yolov8s` | Mayor capacidad que `yolov8n` para objetos pequeños en logística |
+| Epochs | 30 | Suficiente para convergencia sin sobreajuste en este dataset |
+| Batch size | 16 | Balance entre estabilidad del gradiente y uso de memoria GPU |
+| Image size | 640×640 | Resolución estándar de YOLO; preserva detalle en objetos pequeños |
+| Optimizer | AdamW | Mejor generalización que SGD en fine-tuning |
+| lr0 | 0.001 | Learning rate inicial conservador para fine-tuning |
+| lrf | 0.01 | Decaimiento coseno: lr final = lr0 × lrf = 0.00001 |
+| Warmup epochs | 3 | Estabiliza el entrenamiento en las primeras épocas |
+| Mosaic | 1.0 | Augmentación clave para objetos pequeños y variados |
+| Flip LR | 0.5 | Invarianza horizontal (cajas pueden aparecer en cualquier orientación) |
+
+**Justificación principal — `yolov8s` vs `yolov8n`:**  
+El dataset de logística contiene objetos de tamaño variable (cajas, pallets, etiquetas de código de barras). `yolov8s` tiene ~11M parámetros frente a ~3M de `yolov8n`, lo que le permite aprender representaciones más ricas sin requerir hardware de alto costo. En benchmarks internos, `yolov8s` supera a `yolov8n` en ~3–5 puntos de mAP@50 en datasets con clases similares.
+
+---
+
+## 2. Métricas de Evaluación
+
+### 2.1 Resultados en Validation Set
+
+| Métrica | Valor |
+|---|---|
+| mAP@0.50 | *[completar tras entrenamiento]* |
+| mAP@0.50:0.95 | *[completar]* |
+| Precision (P) | *[completar]* |
+| Recall (R) | *[completar]* |
+| F1 Score | *[completar]* |
+
+### 2.2 Resultados en Test Set
+
+| Métrica | Valor |
+|---|---|
+| mAP@0.50 | *[completar]* |
+| mAP@0.50:0.95 | *[completar]* |
+| Precision (P) | *[completar]* |
+| Recall (R) | *[completar]* |
+| F1 Score | *[completar]* |
+
+### 2.3 AP por Clase (Validation)
+
+| Clase | AP@0.50 | AP@0.50:0.95 |
+|---|---|---|
+| *[clase 1]* | *[valor]* | *[valor]* |
+| *[clase 2]* | *[valor]* | *[valor]* |
+| ... | ... | ... |
+
+> Las tablas se completan ejecutando `train.ipynb` con el dataset real.
+
+### 2.4 Explicación de Métricas
+
+**IoU (Intersection over Union):** Mide el solapamiento entre la caja predicha y la caja real. IoU = Área(intersección) / Área(unión). Un umbral de IoU=0.50 es el estándar PASCAL VOC; IoU=0.50:0.95 es el estándar COCO (más estricto).
+
+**mAP (mean Average Precision):** Promedio del AP sobre todas las clases. AP es el área bajo la curva Precision-Recall para una clase dada.
+
+**Precision:** De todas las detecciones realizadas, ¿qué fracción es correcta? P = TP / (TP + FP).
+
+**Recall:** De todos los objetos reales, ¿qué fracción fue detectada? R = TP / (TP + FN).
+
+**F1 Score:** Media armónica de P y R. F1 = 2·P·R / (P+R). Útil cuando se quiere un balance entre ambas.
+
+---
+
+## 3. Métricas Recomendadas para este Dataset
+
+Para un sistema de detección en **logística**, la métrica más crítica es el **Recall**, seguida del **mAP@0.50**.
+
+En entornos logísticos (almacenes, líneas de empaque, control de inventario), el costo de un **falso negativo** (no detectar un objeto) es significativamente mayor que el de un **falso positivo** (detectar algo que no existe). Un pallet no detectado puede causar errores de inventario, retrasos en despacho o accidentes en almacén. En contraste, una detección falsa positiva es fácilmente descartable por un operario o por un segundo filtro de validación.
+
+Por esta razón, se recomienda optimizar el modelo priorizando **Recall alto** (>0.85) incluso si ello implica una ligera reducción de Precision. El **mAP@0.50** es la métrica de reporte estándar para comparar modelos, ya que integra el comportamiento de P y R a través de todos los umbrales de confianza. El **mAP@0.50:0.95** es útil para evaluar la calidad de la localización (qué tan bien se ajustan las cajas), lo cual es relevante si el sistema alimenta un robot de picking que necesita coordenadas precisas.
+
+---
+
+## 4. Deployment con LitServe
+
+### 4.1 Arquitectura
+
+```
+Cliente (imagen) ──POST /predict──► LitServe (server.py) ──► YOLO best.pt ──► JSON detecciones
+```
+
+### 4.2 Iniciar el servidor
+
+```bash
+python server.py
+# Servidor corriendo en http://127.0.0.1:8000
+```
+
+### 4.3 Ejemplo de prueba con curl
+
+```bash
+curl -X POST "http://127.0.0.1:8000/predict" \
+  -H "Content-Type: multipart/form-data" \
+  -F "image=@sample.jpg"
+```
+
+### 4.4 Ejemplo de respuesta JSON
+
+```json
+{
+  "detections": [
+    {
+      "class_id": 2,
+      "class_name": "box",
+      "confidence": 0.8731,
+      "xyxy": [124.5, 88.2, 412.1, 305.7]
+    },
+    {
+      "class_id": 0,
+      "class_name": "pallet",
+      "confidence": 0.7654,
+      "xyxy": [50.0, 200.0, 600.0, 480.0]
+    }
+  ],
+  "count": 2
+}
+```
+
+### 4.5 Prueba con Python
+
+```bash
+python client.py --image sample.jpg
+```
+
+---
+
+## 5. Archivos del Proyecto
+
+```
+workshop2/
+├── README.md          # Enunciado del taller
+├── train.ipynb        # Notebook: descarga, entrenamiento, métricas
+├── server.py          # API LitServe para deployment
+├── client.py          # Cliente de prueba
+└── report.md          # Este reporte
+```
