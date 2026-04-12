@@ -61,7 +61,7 @@ Debido a limitaciones computacionales, no fue posible explorar un espacio más a
 No obstante, los experimentos realizados permiten identificar tendencias consistentes. El modelo con batch size de 32 mostró un desempeño competitivo incluso con un menor número de épocas, lo que sugiere una mayor estabilidad en la estimación del gradiente y una mejor eficiencia en el aprendizaje por iteración. Sin embargo, mantener esta configuración para un número mayor de épocas no fue viable debido a las limitaciones de memoria disponibles.
 
 En este sentido, la selección final del modelo se realizó buscando un balance entre desempeño predictivo y viabilidad computacional, priorizando configuraciones que pudieran entrenarse de manera estable dentro de los recursos disponibles.
----
+
 
 ## 2. Métricas de Evaluación
 
