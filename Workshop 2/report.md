@@ -1,6 +1,6 @@
 # Workshop 2 — Reporte Final
 **Materia:** Inteligencia Artificial  
-**Dataset:** Logistics (Roboflow Universe)  
+**Dataset:** Logistics v2 (Roboflow Universe)
 **Modelo base:** YOLOv8s
 
 ---
@@ -31,29 +31,46 @@ El dataset de logística contiene objetos de tamaño variable (cajas, pallets, e
 
 | Métrica | Valor |
 |---|---|
-| mAP@0.50 | *[completar tras entrenamiento]* |
-| mAP@0.50:0.95 | *[completar]* |
-| Precision (P) | *[completar]* |
-| Recall (R) | *[completar]* |
-| F1 Score | *[completar]* |
+| mAP@0.50 | 0.7735 |
+| mAP@0.50:0.95 | 0.5793 |
+| Precision (P) | 0.7812 |
+| Recall (R) | 0.7162 |
+| F1 Score | 0.7473 |
 
 ### 2.2 Resultados en Test Set
 
 | Métrica | Valor |
 |---|---|
-| mAP@0.50 | *[completar]* |
-| mAP@0.50:0.95 | *[completar]* |
-| Precision (P) | *[completar]* |
-| Recall (R) | *[completar]* |
-| F1 Score | *[completar]* |
+| mAP@0.50 | 0.7692 |
+| mAP@0.50:0.95 | 0.5786 |
+| Precision (P) | 0.7757 |
+| Recall (R) | 0.7122 |
+| F1 Score | 0.7426 |
 
 ### 2.3 AP por Clase (Validation)
 
-| Clase | AP@0.50 | AP@0.50:0.95 |
-|---|---|---|
-| *[clase 1]* | *[valor]* | *[valor]* |
-| *[clase 2]* | *[valor]* | *[valor]* |
-| ... | ... | ... |
+| Clase             | AP@0.50 | AP@0.50:0.95 |
+|------------------|--------:|-------------:|
+| barcode          | 0.8596  | 0.6360       |
+| car              | 0.8563  | 0.7246       |
+| cardboard box    | 0.8982  | 0.7740       |
+| fire             | 0.4970  | 0.2538       |
+| forklift         | 0.9284  | 0.7123       |
+| freight container| 0.5806  | 0.4392       |
+| gloves           | 0.7749  | 0.5546       |
+| helmet           | 0.7529  | 0.4708       |
+| ladder           | 0.6379  | 0.4488       |
+| license plate    | 0.6189  | 0.5179       |
+| person           | 0.8225  | 0.5757       |
+| qr code          | 0.9024  | 0.7264       |
+| road sign        | 0.4397  | 0.3586       |
+| safety vest      | 0.9053  | 0.6569       |
+| smoke            | 0.6824  | 0.3903       |
+| traffic cone     | 0.8917  | 0.7017       |
+| traffic light    | 0.9301  | 0.6432       |
+| truck            | 0.9404  | 0.8495       |
+| van              | 0.9171  | 0.8478       |
+| wood pallet      | 0.6339  | 0.3036       |
 
 > Las tablas se completan ejecutando `train.ipynb` con el dataset real.
 
@@ -71,7 +88,22 @@ El dataset de logística contiene objetos de tamaño variable (cajas, pallets, e
 
 ---
 
-## 3. Métricas Recomendadas para este Dataset
+## 3. Gráficas de Evaluación en el conjunto de Prueba (Test)
+**Curva F1**
+
+![CurvaF1_test](./runs/detect/val2/BoxF1_curve.png)
+
+**Curva de Precision-Recall**
+
+![CurvaPR_test](./runs/detect/val2/BoxPR_curve.png)
+
+**Matriz de Confusión Normalizada**
+
+![CM_test](./runs/detect/val2/confusion_matrix_normalized.png)
+
+> Para consultar más gráficas consultar las carpetas `Workshops-AI/Workshop 2/runs/detect/val` asociada a los resultados en el conjunto de **validation** y `Workshops-AI/Workshop 2/runs/detect/val2` asociada a los resultados en el conjunto de **test**
+
+## 4. Métricas Recomendadas para este Dataset
 
 Para un sistema de detección en **logística**, la métrica más crítica es el **Recall**, seguida del **mAP@0.50**.
 
@@ -81,22 +113,22 @@ Por esta razón, se recomienda optimizar el modelo priorizando **Recall alto** (
 
 ---
 
-## 4. Deployment con LitServe
+## 5. Deployment con LitServe
 
-### 4.1 Arquitectura
+### 5.1 Arquitectura
 
 ```
 Cliente (imagen) ──POST /predict──► LitServe (server.py) ──► YOLO best.pt ──► JSON detecciones
 ```
 
-### 4.2 Iniciar el servidor
+### 5.2 Iniciar el servidor
 
 ```bash
 python server.py
 # Servidor corriendo en http://127.0.0.1:8000
 ```
 
-### 4.3 Ejemplo de prueba con curl
+### 5.3 Ejemplo de prueba con curl
 
 ```bash
 curl -X POST "http://127.0.0.1:8000/predict" \
@@ -104,7 +136,7 @@ curl -X POST "http://127.0.0.1:8000/predict" \
   -F "image=@sample.jpg"
 ```
 
-### 4.4 Ejemplo de respuesta JSON
+### 5.4 Ejemplo de respuesta JSON
 
 ```json
 {
@@ -126,7 +158,7 @@ curl -X POST "http://127.0.0.1:8000/predict" \
 }
 ```
 
-### 4.5 Prueba con Python
+### 5.5 Prueba con Python
 
 ```bash
 python client.py --image sample.jpg
@@ -134,7 +166,7 @@ python client.py --image sample.jpg
 
 ---
 
-## 5. Archivos del Proyecto
+## 6. Archivos del Proyecto
 
 ```
 workshop2/
