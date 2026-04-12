@@ -6,13 +6,30 @@
 ---
 
 ## 1. Training Setup — Parámetros de Entrenamiento
+### Experimentación para Selección de Modelos (combinaciones de hipérparametros probados)
 
+### Modelo 1 (Modelo elegido)
+| Parámetro | Valor | Justificación |
+|---|---|---|
+| Modelo | `yolov8s.pt` | Mayor capacidad que versiones nano para detectar objetos pequeños |
+| Epochs | 30 | Suficiente para convergencia sin sobreajuste en este dataset |
+| Batch size | 16 | Balance entre estabilidad del gradiente y uso de memoria GPU |
+| Image size | 640×640 | Resolución estándar de YOLO; preserva detalle en objetos pequeños |
+| Optimizer | `auto` | Selección automática (usualmente SGD); buen equilibrio general |
+| lr0 | 0.01 (valor por defecto) | Learning rate inicial estándar en YOLOv8 |
+| lrf | 0.01 (valor por defecto)| Decaimiento del learning rate durante el entrenamiento |
+| Warmup epochs | 3 | Estabiliza el entrenamiento en las primeras épocas |
+| Mosaic | 1.0 (valor por defecto) | Augmentación clave para mejorar detección de objetos pequeños |
+| Flip LR | 0.5 (valor por defecto)| Invarianza horizontal en las imágenes |
+
+
+ ### Modelo 2
 | Parámetro | Valor | Justificación |
 |---|---|---|
 | Modelo | `yolov8s` | Mayor capacidad que `yolov8n` para objetos pequeños en logística |
 | Epochs | 30 | Suficiente para convergencia sin sobreajuste en este dataset |
 | Batch size | 16 | Balance entre estabilidad del gradiente y uso de memoria GPU |
-| Image size | 640×640 | Resolución estándar de YOLO; preserva detalle en objetos pequeños |
+| Image size | 520×520 | Resolución estándar de YOLO; preserva detalle en objetos pequeños |
 | Optimizer | AdamW | Mejor generalización que SGD en fine-tuning |
 | lr0 | 0.001 | Learning rate inicial conservador para fine-tuning |
 | lrf | 0.01 | Decaimiento coseno: lr final = lr0 × lrf = 0.00001 |
@@ -20,9 +37,30 @@
 | Mosaic | 1.0 | Augmentación clave para objetos pequeños y variados |
 | Flip LR | 0.5 | Invarianza horizontal (cajas pueden aparecer en cualquier orientación) |
 
+
+### Modelo 3
+| Parámetro | Valor | Justificación |
+|---|---|---|
+| Modelo | `yolov8s.pt` | Mayor capacidad que versiones nano para detectar objetos pequeños |
+| Epochs | 16 | Menor tiempo de entrenamiento; útil para pruebas rápidas o datasets pequeños |
+| Batch size | 32 | Mayor estabilidad del gradiente y mejor aprovechamiento de GPU |
+| Image size | 520×520 | Reduce costo computacional manteniendo suficiente detalle |
+| Optimizer | AdamW | Mejor generalización que SGD en fine-tuning |
+| lr0 | 0.01 | Learning rate inicial estándar en YOLOv8 |
+| lrf | 0.01 | Decaimiento del learning rate durante el entrenamiento |
+| Warmup epochs | 3 | Estabiliza el entrenamiento en las primeras épocas |
+| Mosaic | 1.0 | Augmentación clave para objetos pequeños |
+| Flip LR | 0.5 | Invarianza horizontal en las imágenes |
+
+
 **Justificación principal — `yolov8s` vs `yolov8n`:**  
 El dataset de logística contiene objetos de tamaño variable (cajas, pallets, etiquetas de código de barras). `yolov8s` tiene ~11M parámetros frente a ~3M de `yolov8n`, lo que le permite aprender representaciones más ricas sin requerir hardware de alto costo. En benchmarks internos, `yolov8s` supera a `yolov8n` en ~3–5 puntos de mAP@50 en datasets con clases similares.
 
+Debido a limitaciones computacionales, no fue posible explorar un espacio más amplio de modelos e hiperparámetros. En particular, configuraciones con mayor tamaño de batch o mayor número de épocas implican un incremento significativo en el uso de memoria GPU y tiempo de entrenamiento, lo cual restringió la experimentación.
+
+No obstante, los experimentos realizados permiten identificar tendencias consistentes. El modelo con batch size de 32 mostró un desempeño competitivo incluso con un menor número de épocas, lo que sugiere una mayor estabilidad en la estimación del gradiente y una mejor eficiencia en el aprendizaje por iteración. Sin embargo, mantener esta configuración para un número mayor de épocas no fue viable debido a las limitaciones de memoria disponibles.
+
+En este sentido, la selección final del modelo se realizó buscando un balance entre desempeño predictivo y viabilidad computacional, priorizando configuraciones que pudieran entrenarse de manera estable dentro de los recursos disponibles.
 ---
 
 ## 2. Métricas de Evaluación
