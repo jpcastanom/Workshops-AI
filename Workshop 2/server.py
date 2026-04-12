@@ -1,41 +1,48 @@
 import io
-from typing import List, Dict, Any
-
-import litserve as ls
+from pathlib import Path
 from fastapi import UploadFile
+from litserve import LitAPI, LitServer
 from PIL import Image
 from ultralytics import YOLO
 
-MODEL_PATH = "runs/logistics/y8s/weights/best.pt"
+# ── Configuración ──────────────────────────────────────────────────────────────
 
+WEIGHTS = Path("/teamspace/studios/this_studio/Workshops-AI/Workshop 2/runs/detect/runs/logistics/y8s/weights/best.pt")
 
-class LogisticsAPI(ls.LitAPI):
-    def setup(self, device: str):
-        self.model = YOLO(MODEL_PATH)
+class ObjectDetectionAPI(LitAPI):
 
-    def decode_request(self, request: Dict[str, Any]) -> Image.Image:
-        if isinstance(request, dict) and "image" in request:
-            f: UploadFile = request["image"]
-            return Image.open(io.BytesIO(f.file.read())).convert("RGB")
-        raise ValueError("Expected multipart form-data with field 'image'")
+    def setup(self, device):
+        self.model = YOLO(str(WEIGHTS))
+        self.model.to(device)
 
-    def predict(self, image: Image.Image) -> List[Dict[str, Any]]:
-        results = self.model.predict(image, conf=0.25, imgsz=640, verbose=False)[0]
+    def decode_request(self, request: UploadFile) -> Image.Image:
+        return Image.open(io.BytesIO(request.file.read())).convert("RGB")
+
+    def predict(self, image: Image.Image):
+        return self.model.predict(image, conf=0.25, iou=0.45, imgsz=640,
+                                  save=False, verbose=False)
+
+    def encode_response(self, results) -> dict:
         detections = []
-        for b in results.boxes:
-            cls_id = int(b.cls[0].item())
-            detections.append({
-                "class_id": cls_id,
-                "class_name": results.names[cls_id],
-                "confidence": round(float(b.conf[0].item()), 4),
-                "xyxy": [round(float(x), 2) for x in b.xyxy[0].tolist()],
-            })
-        return detections
+        r = results[0]
+        if r.boxes is None or len(r.boxes) == 0:
+            return {"detections": detections}
 
-    def encode_response(self, output: List[Dict[str, Any]]) -> Dict[str, Any]:
-        return {"detections": output, "count": len(output)}
+        for cls_id, conf, bbox in zip(
+            r.boxes.cls.cpu().numpy().astype(int),
+            r.boxes.conf.cpu().numpy(),
+            r.boxes.xyxy.cpu().numpy(),
+        ):
+            detections.append({
+                "class_id":   int(cls_id),
+                "class_name": r.names[cls_id],
+                "confidence": round(float(conf), 4),
+                "bbox":       [round(float(x), 2) for x in bbox.tolist()],
+            })
+
+        return {"detections": detections}
 
 
 if __name__ == "__main__":
-    server = ls.LitServer(LogisticsAPI(), accelerator="auto")
+    server = LitServer(ObjectDetectionAPI(), accelerator="auto")
     server.run(port=8000)
