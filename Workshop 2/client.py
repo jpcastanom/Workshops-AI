@@ -7,7 +7,7 @@ import requests
 import supervision as sv
 from PIL import Image
 
-SERVER_URL = "https://127.0.0.1:8000/predict"
+SERVER_URL = "http://0.0.0.0:8000/predict"
 
 def main():
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
