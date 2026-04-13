@@ -208,7 +208,7 @@ curl -X POST "http://0.0.0.0:8000/predict" \
 }
 ```
 
-### 5.5 Prueba con Python
+### 5.5 Prueba con Python en la terminal
 
 ```bash
 python client.py --image sample.jpg --url
@@ -218,6 +218,52 @@ Si la URL por defecto funciona correctamente y se desea usar una forma abreviada
 ```bash
 python client.py -i sample.jpg
 ```
+
+Como prueba de ejecución, se usaron algunas imagenes de prueba donde a traves del cliente se le pasa la información de la imagen al modelo para que este reconozca los objetos de la imagen y nos pueda informar con que confianza realiza la identificación.
+
+![ofice_annotated](./testing/ofice_annotated.jpg) 
+
+| Objeto         | Confianza | Coordenadas              |
+|----------------|----------|--------------------------|
+| person         | 0.829    | (0,162)   → (139,640)    |
+| person         | 0.813    | (347,34)  → (400,245)    |
+| cardboard box  | 0.735    | (467,313) → (520,378)    |
+| cardboard box  | 0.723    | (197,142) → (222,178)    |
+| cardboard box  | 0.719    | (457,345) → (507,408)    |
+| cardboard box  | 0.690    | (422,377) → (534,572)    |
+| cardboard box  | 0.669    | (99,91)   → (148,164)    |
+| cardboard box  | 0.623    | (510,72)  → (564,128)    |
+| cardboard box  | 0.599    | (229,48)  → (253,77)     |
+| person         | 0.571    | (400,43)  → (464,203)    |
+| cardboard box  | 0.518    | (234,125) → (258,158)    |
+| cardboard box  | 0.473    | (560,101) → (591,142)    |
+| gloves         | 0.462    | (89,285)  → (109,331)    |
+| cardboard box  | 0.416    | (184,150) → (200,178)    |
+| cardboard box  | 0.412    | (277,115) → (305,146)    |
+| cardboard box  | 0.401    | (566,47)  → (601,106)    |
+| cardboard box  | 0.396    | (530,0)   → (583,42)     |
+| cardboard box  | 0.391    | (458,345) → (483,396)    |
+| cardboard box  | 0.352    | (440,33)  → (601,440)    |
+| cardboard box  | 0.302    | (221,161) → (241,176)    |
+| cardboard box  | 0.300    | (229,41)  → (251,63)     |
+| cardboard box  | 0.296    | (531,354) → (593,553)    |
+| cardboard box  | 0.272    | (134,153) → (190,214)    |
+
+![variouscars_annotated](./testing/variouscars_annotated.jpg)
+
+| Objeto | Confianza | Coordenadas              |
+|--------|----------|--------------------------|
+| car    | 0.787    | (286,106) → (461,466)   |
+| car    | 0.705    | (172,156) → (337,484)   |
+| car    | 0.539    | (402,76)  → (546,236)   |
+
+> Las pruebas realizadas se guardaron en la carpeta `testing`, donde se verificó el comportamiento del modelo principalmente con imágenes que el modelo no había visto ni en entrenamiento ni en validación.
+
+El flujo de inferencia consiste en que el cliente envía una imagen mediante una petición, la cual es recibida y preprocesada por el servidor antes de ser evaluada por el modelo YOLOv8. Posteriormente, se aplica Non-Maximum Suppression (NMS) para eliminar detecciones redundantes y, finalmente, los resultados se estructuran en formato JSON incluyendo clases, niveles de confianza y coordenadas. Este enfoque permite desacoplar el cliente del modelo, facilitando su integración con otros sistemas.
+
+El modelo devuelve varias detecciones con distintos niveles de confianza usando el umbral por defecto de YOLO. Dependiendo del caso, ese valor se puede ajustar: un umbral más bajo hace que aparezcan más detecciones (aunque con más falsos positivos), mientras que uno más alto filtra mejor, pero puede dejar pasar algunos objetos.
+
+En general, el modelo logra un buen desempeño para la mayoría de las clases, con métricas consistentes entre validación y prueba, lo que indica que generaliza de forma adecuada. Aun así, se identifican algunas clases con bajo rendimiento, lo que muestra que todavía hay espacio de mejora, especialmente con más datos o ajustes finos. El despliegue realizado demuestra que el modelo no solo funciona en evaluación, sino también en un entorno práctico
 
 ---
 
