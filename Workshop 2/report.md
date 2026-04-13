@@ -113,6 +113,13 @@ En este sentido, la selección final del modelo se realizó buscando un balance 
 
 > Las tablas se completan ejecutando `train.ipynb` con el dataset real.
 
+Podemos observar que el area bajo la curva de PR para el estándar PASCAL es menor a 0.5 para 2 de 20 categorías/clases y es mayor a 0.75 para 13 de ellas; por lo que, si bien el modelo no es excelente para todas las clases, es bueno/suficiente para más de la mitad de estas (65%).
+
+Cuando se utiliza el estándar COCO para observar el área bajo la curva PR el resultado no resultado tan prometedor sin llegar a ser desalientador, lo que representa un margen de mejora para el modelo en futuros entrenamientos.
+
+Además, el promedio de las distintas clases en el Recall, Precision y F1-score se mantienen por encima de 0.7 (sección **2.1** y **2.2**), respaldando la métrica con el primer estándar.
+
+
 ### 2.4 Explicación de Métricas
 
 **IoU (Intersection over Union):** Mide el solapamiento entre la caja predicha y la caja real. IoU = Área(intersección) / Área(unión). Un umbral de IoU=0.50 es el estándar PASCAL VOC; IoU=0.50:0.95 es el estándar COCO (más estricto).
@@ -132,7 +139,7 @@ En este sentido, la selección final del modelo se realizó buscando un balance 
 
 ![CurvaF1_test](./runs/detect/val2/BoxF1_curve.png)
 
-**Curva de Precision-Recall**
+**Curva de Precision-Recall (PR)**
 
 ![CurvaPR_test](./runs/detect/val2/BoxPR_curve.png)
 
@@ -141,6 +148,10 @@ En este sentido, la selección final del modelo se realizó buscando un balance 
 ![CM_test](./runs/detect/val2/confusion_matrix_normalized.png)
 
 > Para consultar más gráficas consultar las carpetas `Workshops-AI/Workshop 2/runs/detect/val` asociada a los resultados en el conjunto de **validation** y `Workshops-AI/Workshop 2/runs/detect/val2` asociada a los resultados en el conjunto de **test**
+
+En cuanto a las curvas, similar a la sección anterior, se evidencian clases más favorecidas (mejor apredidas) que otras. En particular, cabe mencionar a las clases "fire", "license plate", "road sign" y "smoke" por tener una tasa de desacierto mayor a 0.4 en el conjunto de entrenamiento, lo que se evidencia en la matriz de confución, del mismo modo que se observa el desempeño regular del modelo para estas clases en las curvas F1 y PR.
+
+Aunque también se deben resaltar las buenas cosas, como las métricas particularmente buenas una parte significativa de las clases, así como la tendencia en general (línea azul gruesa).
 
 ## 4. Métricas Recomendadas para este Dataset
 
