@@ -1,6 +1,6 @@
 # Workshop 2 — Reporte Final
 **Materia:** Inteligencia Artificial  
-**Dataset:** Logistics v2 (Roboflow Universe)
+**Dataset:** Logistics v2 (Roboflow Universe)  
 **Modelo base:** YOLOv8s
 
 ---
@@ -61,6 +61,7 @@ Debido a limitaciones computacionales, no fue posible explorar un espacio más a
 No obstante, los experimentos realizados permiten identificar tendencias consistentes. El modelo con batch size de 32 mostró un desempeño competitivo incluso con un menor número de épocas, lo que sugiere una mayor estabilidad en la estimación del gradiente y una mejor eficiencia en el aprendizaje por iteración. Sin embargo, mantener esta configuración para un número mayor de épocas no fue viable debido a las limitaciones de memoria disponibles.
 
 En este sentido, la selección final del modelo se realizó buscando un balance entre desempeño predictivo y viabilidad computacional, priorizando configuraciones que pudieran entrenarse de manera estable dentro de los recursos disponibles.
+
 ---
 
 ## 2. Métricas de Evaluación
@@ -207,10 +208,15 @@ python client.py --image sample.jpg
 ## 6. Archivos del Proyecto
 
 ```
-workshop2/
-├── README.md          # Enunciado del taller
-├── train.ipynb        # Notebook: descarga, entrenamiento, métricas
-├── server.py          # API LitServe para deployment
-├── client.py          # Cliente de prueba
-└── report.md          # Este reporte
+Workshop 2/
+├── README.md             # Enunciado del taller
+├── train.ipynb           # Notebook: descarga, entrenamiento, métricas
+├── server.py             # API LitServe para deployment
+├── client.py             # Cliente de prueba
+├── report.md             # Este reporte
+├── runs/detect/
+│   ├── logistics/y8s/    # Modelo, hiperparámetros y resultados
+│   ├── val/              # Gráficas de resultados en val
+│   └── val2/             # Gráficas de resultados en test
+└── testing/              # Ejemplos del funcionamiento del servidor
 ```
