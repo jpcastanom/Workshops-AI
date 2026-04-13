@@ -200,7 +200,12 @@ curl -X POST "http://0.0.0.0:8000/predict" \
 ### 5.5 Prueba con Python
 
 ```bash
-python client.py --image sample.jpg
+python client.py --image sample.jpg --url
+```
+Si la URL por defecto funciona correctamente y se desea usar una forma abreviada el comando `--image`, se puede utilizar el siguiente comando: 
+
+```bash
+python client.py -i sample.jpg
 ```
 
 ---
