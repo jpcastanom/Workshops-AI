@@ -7,6 +7,7 @@ Este repositorio reúne los talleres prácticos que hemos desarrollado durante e
 Cada workshop está organizado en su propia carpeta, junto con su documentación y archivos correspondientes.
 
 - **Workshop 1**: Implementación de un framework de Deep Learning desde cero (MiniTorch).  
+- **Workshop 2**: Fine-tune y despliegue de un modelos de detección de objetos YOLOv8.
 - *(Se irán agregando más workshops a medida que avance el curso.)*
 
 ## Objetivos del curso  
