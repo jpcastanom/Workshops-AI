@@ -1,2 +1,5 @@
 /Workshop 2/datasets/
 *.pyc
+/Workshop4/.env
+*.bin
+/Workshop4/db
