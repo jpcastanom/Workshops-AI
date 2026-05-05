@@ -3,3 +3,4 @@
 /Workshop4/.env
 *.bin
 /Workshop4/db
+/Project/Plant_disease_recognition_dataset
