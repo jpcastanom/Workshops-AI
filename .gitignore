@@ -3,3 +3,5 @@
 /Workshop4/.env
 *.bin
 /Workshop4/db
+/Workshop4/docs
+/Workshop4/.env
