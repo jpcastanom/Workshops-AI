@@ -130,8 +130,8 @@ jupyter notebook RAGLLM.ipynb
 
 ## Autores
 
-Juan Pablo Castaño
-Sara Sofía Quintero
-Karol Vanessa Cuello
+- Juan Pablo Castaño  
+- Sara Sofía Quintero  
+- Karol Vanessa Cuello
 
 *Estudiantes de Ingeniería Matemática – Universidad EAFIT*
